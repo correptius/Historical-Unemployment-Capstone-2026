@@ -1,0 +1,114 @@
+---
+title: "Statistical Analysis"
+author: "Ria Rhodes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+clean <- read.csv("clean.csv")
+head(clean)
+```
+
+```{r}
+mean(clean$X1.Month...Change, na.rm = TRUE)
+median(clean$X1.Month...Change, na.rm = TRUE)
+sd(clean$X1.Month...Change, na.rm = TRUE)
+min(clean$X1.Month...Change, na.rm = TRUE)
+max(clean$X1.Month...Change, na.rm = TRUE)
+```
+
+```{r}
+pop <- read.csv("pop.csv")
+head(pop)
+```
+
+```{r}
+states_to_use <- c("Arizona", "Arkansas", "California", 
+                   "Maine", "New Jersey", "Tennessee")
+
+pop_sub <- pop |>
+  filter(state %in% states_to_use,
+         year %in% 2020:2025)
+
+clean_sub <- clean %>%
+  filter(state %in% states_to_use,
+         Year %in% 2020:2025)
+```
+
+```{r}
+clean_sub <- clean_sub %>%
+  rename(year = Year)
+```
+
+```{r}
+merged <- pop_sub %>%
+  inner_join(clean_sub, by = c("state", "year"))
+```
+
+```{r}
+library(dplyr)
+
+unemp_yearly <- merged %>%
+  group_by(state, year) %>%
+  summarise(Value = mean(Value, na.rm = TRUE)) %>%
+  ungroup()
+
+```
+
+```{r}
+pop_sub$year <- as.integer(pop_sub$year)
+unemp_yearly$year <- as.integer(unemp_yearly$year)
+pop_density$year <- as.integer(pop_density$year)
+
+final <- pop_density %>%
+  filter(state %in% states_to_use,
+         year %in% 2020:2025) %>%
+  inner_join(unemp_yearly, by = c("state", "year"))
+```
+
+```{r}
+hist(final$pop_density)
+```
+
+```{r}
+cor.test(final$pop_density, final$Value, method = "pearson")
+cor.test(final$pop_density, final$Value, method = "spearman")
+```
+
+```{r}
+final %>%
+  group_by(state) %>%
+  summarise(
+    pearson  = cor(pop_density, Value, method = "pearson"),
+    spearman = cor(pop_density, Value, method = "spearman")
+  )
+# Only Cali is positive
+# Driven by state differences, not trends :(
+  # Denser state, higher unemployment- However, unemployment will fall while density is consistent
+)
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(final, aes(x = pop_density, y = Value)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  labs(title = "Population Density vs Unemployment",
+       x = "Population Density",
+       y = "Unemployment Rate")
+
+```
+
+```{r}
+final$log_density <- log(final$pop_density)
+
+cor.test(final$log_density, final$Value)
+  # Better
+```
+

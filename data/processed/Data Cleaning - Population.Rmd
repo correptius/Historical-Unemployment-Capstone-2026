@@ -1,0 +1,107 @@
+---
+title: "Data Cleaning - Population"
+author: "Ria Rhodes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+library(dplyr)
+```
+
+```{r}
+pop <- read.csv("population.csv")
+head(pop)
+```
+
+```{r}
+pop_clean <- pop %>%
+  rename(
+    state = X,
+    `2020` = X2020,
+    `2021` = X2021,
+    `2022` = X2022,
+    `2023` = X2023,
+    `2024` = X2024,
+    `2025` = X2025
+  )
+```
+
+```{r}
+land_area <- tibble::tribble(
+  ~state, ~land_area,
+  "Alabama", 50645,
+  "Alaska", 570641,
+  "Arizona", 113990,
+  "Arkansas", 52035,
+  "California", 155779,
+  "Colorado", 103642,
+  "Connecticut", 4842,
+  "Delaware", 1949,
+  "Florida", 53625,
+  "Georgia", 57513,
+  "Hawaii", 6423,
+  "Idaho", 82643,
+  "Illinois", 55519,
+  "Indiana", 35826,
+  "Iowa", 55857,
+  "Kansas", 81823,
+  "Kentucky", 39486,
+  "Louisiana", 43204,
+  "Maine", 30843,
+  "Maryland", 9707,
+  "Massachusetts", 7800,
+  "Michigan", 56804,
+  "Minnesota", 79627,
+  "Mississippi", 46923,
+  "Missouri", 68886,
+  "Montana", 145546,
+  "Nebraska", 76824,
+  "Nevada", 109781,
+  "New Hampshire", 8953,
+  "New Jersey", 7417,
+  "New Mexico", 121298,
+  "New York", 47224,
+  "North Carolina", 48718,
+  "North Dakota", 69001,
+  "Ohio", 40861,
+  "Oklahoma", 68595,
+  "Oregon", 95988,
+  "Pennsylvania", 44817,
+  "Rhode Island", 1034,
+  "South Carolina", 30060,
+  "South Dakota", 75811,
+  "Tennessee", 41235,
+  "Texas", 261232,
+  "Utah", 82170,
+  "Vermont", 9217,
+  "Virginia", 39590,
+  "Washington", 66456,
+  "West Virginia", 24038,
+  "Wisconsin", 54310,
+  "Wyoming", 97093
+)
+```
+
+```{r}
+pop_long <- pop_clean %>%
+  pivot_longer(cols = `2020`:`2025`,
+               names_to = "year",
+               values_to = "population") %>%
+  mutate(population = as.numeric(gsub(",", "", population)))
+```
+
+```{r}
+pop_density <- pop_long %>%
+  left_join(land_area, by = "state") %>%
+  mutate(pop_density = population / land_area)
+```
+
+```{r}
+write.csv(pop_density, "pop.csv", row.names = FALSE)
+```
+

@@ -1,0 +1,115 @@
+---
+title: "GIS Graph"
+author: "Ria Rhodes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+clean <- read.csv("clean.csv")
+
+head(clean)
+```
+
+```{r}
+library(sf)
+library(USAboundaries)
+
+states_sf <- USAboundaries::us_states() %>%
+  filter(!state_name %in% c("Puerto Rico", "Guam", "American Samoa",
+                            "U.S. Virgin Islands", "Northern Mariana Islands"))
+```
+
+```{r}
+states_to_map <- c(
+  "Tennessee",
+  "California",
+  "Maine",
+  "New Jersey",
+  "Arkansas",
+  "Arizona"
+)
+```
+
+```{r}
+state_avg <- clean %>%
+  group_by(state) %>%
+  summarize(avg_pct_change = mean(`X1.Month...Change`, na.rm = TRUE))
+```
+
+```{r}
+map_data <- states_sf %>%
+  left_join(state_avg, by = c("state_name" = "state"))
+```
+
+```{r}
+centroids <- st_centroid(map_data)
+```
+
+```{r}
+map_data_sub <- map_data %>%
+  filter(state_name %in% states_to_map)
+
+centroids_sub <- centroids %>%
+  filter(state_name %in% states_to_map)
+```
+
+```{r}
+library(ggplot2)
+
+ggplot() +
+  geom_sf(data = map_data, fill = "gray95", color = "white") +
+  geom_sf(data = centroids, aes(color = avg_pct_change, size = avg_pct_change)) +
+  scale_color_viridis_c(option = "plasma") +
+  labs(
+    title = "Average Monthly Percent Change in Unemployment by State",
+    color = "Avg % Change",
+    size = "Avg % Change"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+library(leaflet)
+library(scales)
+
+pal <- colorNumeric(
+  palette = c("#2C7BB6", "#41B6C4", "#7FC97F", "#F46D43", "#A50026", "#4A001F"),
+  domain = map_data_sub$avg_pct_change
+)
+
+leaflet() %>%
+  addProviderTiles("CartoDB.Voyager") %>%
+  addPolygons(
+    data = map_data_sub,
+    fillColor = "white",
+    fillOpacity = 0.2,
+    color = "gray40",
+    weight = 1
+  ) %>%
+  addCircleMarkers(
+    data = centroids_sub,
+    lng = ~st_coordinates(geometry)[,1],
+    lat = ~st_coordinates(geometry)[,2],
+    radius = ~scales::rescale(avg_pct_change, to = c(8, 20)),
+    color = ~pal(avg_pct_change),
+    fillOpacity = 0.9,
+    stroke = FALSE,
+    label = ~paste0(
+      "<b>", state_name, "</b><br>",
+      "Avg % Change: ", round(avg_pct_change, 2)
+    ) %>% lapply(htmltools::HTML)
+  ) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal,
+    values = map_data_sub$avg_pct_change,
+    title = "Avg Monthly % Change",
+    opacity = 1,
+    na.label = ""   # ensures no N/A box
+  )
+
+```

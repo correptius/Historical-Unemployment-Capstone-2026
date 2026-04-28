@@ -1,0 +1,158 @@
+---
+title: "General EDA"
+author: "Ria Rhodes"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# General EDA, with a focus on basic graphing 
+
+```{r}
+# Libraries
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r}
+# Read in data
+mix <- read.csv("clean.csv")
+head(mix)
+```
+
+```{r}
+mix <- mix %>%
+  mutate(
+    Value = as.numeric(Value),
+    Month = as.integer(str_remove(Period, "M")),
+    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+  )
+
+ggplot(mix, aes(x = Date, y = Value)) +
+  geom_line(color = "darkred", linewidth = 1.2) +
+  geom_point(color = "darkred", size = 2) +
+  labs(
+    title = "Unemployment Rate Over Time (Monthly)",
+    x = "Date",
+    y = "Unemployment %",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics"
+  ) +
+  theme_minimal(base_size = 14)
+
+```
+
+```{r}
+mix %>%
+  mutate(Value = as.numeric(Value)) %>%
+  group_by(Year) %>%
+  summarize(avg_value = mean(Value)) %>%
+  ggplot(aes(x = factor(Year), y = avg_value)) +
+  geom_col(fill = "darkred") +
+  labs(title = "Average Unemployment per Year", x = "Year", y = "Average Unemployment %",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_minimal()
+```
+
+```{r}
+mix %>%
+  mutate(
+    Change = as.numeric(X1.Month.Net.Change),
+    Month = as.integer(str_remove(Period, "M")),
+    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+  ) %>%
+  ggplot(aes(Date, Change)) +
+  geom_col(fill = "darkred") +
+  labs(title = "Unemployment Month-to-Month Net Change", x = "Date", y = "% Change",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_minimal()
+```
+
+```{r}
+mix %>%
+  mutate(
+    Value = as.numeric(Value),
+    Month = as.integer(str_remove(Period, "M"))
+  ) %>%
+  ggplot(aes(x = Month, y = Value, group = Year, color = factor(Year))) +
+  geom_line(alpha = 0.6) +
+  labs(title = "Seasonal Patterns in Unemployment Across Years", x = "Month", y = "Rate",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_minimal()
+
+```
+
+```{r}
+mix %>%
+  mutate(
+    Value = as.numeric(Value),
+    Month = as.integer(str_remove(Period, "M"))
+  ) %>%
+  ggplot(aes(x = Month, y = Year, fill = Value)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "Heatmap of Unemployment Rate by Month and Year", x = "Month", y = "Year",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_minimal()
+
+```
+
+```{r}
+mix %>%
+  mutate(
+    Value = as.numeric(Value),
+    Month = as.integer(str_remove(Period, "M"))
+  ) %>%
+  ggplot(aes(Month, Value)) +
+  geom_line(color = "darkred") +
+  facet_wrap(~ Year) +
+  theme_minimal() +
+  labs(title = "Monthly Unemployment Trends by Year",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics", y = "Rate")
+
+```
+
+```{r}
+mix %>%
+  mutate(Value = as.numeric(Value)) %>%
+  ggplot(aes(Value)) +
+  geom_density(fill = "darkred", alpha = 0.4) +
+    labs(
+    x = "Unemployment %",
+    y = "Density",
+    title = "Density of Unemployment %",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics"
+  )+
+  theme_minimal()
+
+```
+```{r}
+mix %>%
+  mutate(Value = as.numeric(Value)) %>%
+  ggplot(aes(x = factor(Year), y = Value)) +
+  geom_boxplot(fill = "darkorange") +
+  labs(title = "Unemployment Distribution by Year", x = "Year", y = "Unemployment",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_minimal()
+
+```
+
+```{r}
+mix %>%
+  mutate(
+    Value = as.numeric(Value),
+    Month = as.integer(str_remove(Period, "M")),
+    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+  ) %>%
+  ggplot(aes(Date, Value)) +
+  geom_line() +
+  facet_wrap(~ state, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "Unemployment Over Time by State",
+    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics", y = "Unemployment", x = "Year")
+
+
+```
+

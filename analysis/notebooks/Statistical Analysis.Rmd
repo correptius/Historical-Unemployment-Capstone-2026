@@ -9,6 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+library(dplyr)
+```
+
+
+```{r}
 clean <- read.csv("clean.csv")
 head(clean)
 ```
@@ -62,9 +67,9 @@ unemp_yearly <- merged %>%
 ```{r}
 pop_sub$year <- as.integer(pop_sub$year)
 unemp_yearly$year <- as.integer(unemp_yearly$year)
-pop_density$year <- as.integer(pop_density$year)
+pop$year <- as.integer(pop$year)
 
-final <- pop_density %>%
+final <- pop %>%
   filter(state %in% states_to_use,
          year %in% 2020:2025) %>%
   inner_join(unemp_yearly, by = c("state", "year"))
@@ -76,7 +81,6 @@ hist(final$pop_density)
 
 ```{r}
 cor.test(final$pop_density, final$Value, method = "pearson")
-cor.test(final$pop_density, final$Value, method = "spearman")
 ```
 
 ```{r}
@@ -84,12 +88,10 @@ final %>%
   group_by(state) %>%
   summarise(
     pearson  = cor(pop_density, Value, method = "pearson"),
-    spearman = cor(pop_density, Value, method = "spearman")
   )
 # Only Cali is positive
 # Driven by state differences, not trends :(
   # Denser state, higher unemployment- However, unemployment will fall while density is consistent
-)
 ```
 
 ```{r}

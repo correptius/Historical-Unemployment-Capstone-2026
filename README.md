@@ -10,11 +10,8 @@ Tools Used:
 This project relies on R Studio for all analysis and visualizations. The libraries used were as follows:
 
   General
-  
     - tidyr
-    
     - dplyr
-    
     - tidyverse
     
   Cleaning

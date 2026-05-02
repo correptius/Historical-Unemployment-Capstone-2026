@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # Loading in libraries
 library(dplyr)
 library(ggplot2)
-library(dplyr)
 ```
 
 

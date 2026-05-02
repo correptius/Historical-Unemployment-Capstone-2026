@@ -57,17 +57,6 @@ head(df_clean)
 ```
 
 ```{r}
-# Creating state average percent change variable
-state_avg <- df_clean %>%
-  group_by(state) %>%
-  summarize(avg_pct_change = mean(`x1_month_percent_change`, na.rm = TRUE))
-```
-
-```{r}
-head(state_avg)
-```
-
-```{r}
 # Writing the data
 write.csv(df_clean, "clean.csv", row.names = FALSE)
 ```

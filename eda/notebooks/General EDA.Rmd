@@ -19,19 +19,21 @@ library(tidyverse)
 
 ```{r}
 # Read in data
-mix <- read.csv("clean.csv")
-head(mix)
+clean <- read.csv("clean.csv")
+head(clean)
 ```
 
 ```{r}
-mix <- mix %>%
+# Cleaning some data
+clean <- clean %>%
   mutate(
-    Value = as.numeric(Value),
-    Month = as.integer(str_remove(Period, "M")),
-    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+    value = as.numeric(value),
+    month = as.integer(str_remove(period, "M")),
+    date = as.Date(paste(year, month, "01", sep = "-"))
   )
 
-ggplot(mix, aes(x = Date, y = Value)) +
+# Graphing unemployment rate over time
+ggplot(clean, aes(x = date, y = value)) +
   geom_line(color = "darkred", linewidth = 1.2) +
   geom_point(color = "darkred", size = 2) +
   labs(
@@ -45,11 +47,12 @@ ggplot(mix, aes(x = Date, y = Value)) +
 ```
 
 ```{r}
-mix %>%
-  mutate(Value = as.numeric(Value)) %>%
-  group_by(Year) %>%
-  summarize(avg_value = mean(Value)) %>%
-  ggplot(aes(x = factor(Year), y = avg_value)) +
+# Bar Chart of Unemployment per Year
+clean %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(year) %>%
+  summarize(avg_value = mean(value)) %>%
+  ggplot(aes(x = factor(year), y = avg_value)) +
   geom_col(fill = "darkred") +
   labs(title = "Average Unemployment per Year", x = "Year", y = "Average Unemployment %",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
@@ -57,13 +60,14 @@ mix %>%
 ```
 
 ```{r}
-mix %>%
+# Positive/Negative Graph on Unemployment Net Change
+clean %>%
   mutate(
-    Change = as.numeric(X1.Month.Net.Change),
-    Month = as.integer(str_remove(Period, "M")),
-    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+    change = as.numeric(x1_month_net_change),
+    month = as.integer(str_remove(period, "M")),
+    date = as.Date(paste(year, month, "01", sep = "-"))
   ) %>%
-  ggplot(aes(Date, Change)) +
+  ggplot(aes(date, change)) +
   geom_col(fill = "darkred") +
   labs(title = "Unemployment Month-to-Month Net Change", x = "Date", y = "% Change",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
@@ -71,12 +75,13 @@ mix %>%
 ```
 
 ```{r}
-mix %>%
+# Graph of seasonal changes in unemployment
+clean %>%
   mutate(
-    Value = as.numeric(Value),
-    Month = as.integer(str_remove(Period, "M"))
+    value = as.numeric(value),
+    month = as.integer(str_remove(period, "M"))
   ) %>%
-  ggplot(aes(x = Month, y = Value, group = Year, color = factor(Year))) +
+  ggplot(aes(x = month, y = value, group = year, color = factor(year))) +
   geom_line(alpha = 0.6) +
   labs(title = "Seasonal Patterns in Unemployment Across Years", x = "Month", y = "Rate",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
@@ -85,29 +90,15 @@ mix %>%
 ```
 
 ```{r}
-mix %>%
+# Faceted graph of monthly unemployment per year
+clean %>%
   mutate(
-    Value = as.numeric(Value),
-    Month = as.integer(str_remove(Period, "M"))
+    value = as.numeric(value),
+    month = as.integer(str_remove(period, "M"))
   ) %>%
-  ggplot(aes(x = Month, y = Year, fill = Value)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "Heatmap of Unemployment Rate by Month and Year", x = "Month", y = "Year",
-    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
-  theme_minimal()
-
-```
-
-```{r}
-mix %>%
-  mutate(
-    Value = as.numeric(Value),
-    Month = as.integer(str_remove(Period, "M"))
-  ) %>%
-  ggplot(aes(Month, Value)) +
+  ggplot(aes(month, value)) +
   geom_line(color = "darkred") +
-  facet_wrap(~ Year) +
+  facet_wrap(~ year) +
   theme_minimal() +
   labs(title = "Monthly Unemployment Trends by Year",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics", y = "Rate")
@@ -115,9 +106,10 @@ mix %>%
 ```
 
 ```{r}
-mix %>%
-  mutate(Value = as.numeric(Value)) %>%
-  ggplot(aes(Value)) +
+# Density of unemployment percentages
+clean %>%
+  mutate(value = as.numeric(value)) %>%
+  ggplot(aes(value)) +
   geom_density(fill = "darkred", alpha = 0.4) +
     labs(
     x = "Unemployment %",
@@ -126,20 +118,10 @@ mix %>%
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics"
   )+
   theme_minimal()
-
-```
-```{r}
-mix %>%
-  mutate(Value = as.numeric(Value)) %>%
-  ggplot(aes(x = factor(Year), y = Value)) +
-  geom_boxplot(fill = "darkorange") +
-  labs(title = "Unemployment Distribution by Year", x = "Year", y = "Unemployment",
-    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
-  theme_minimal()
-
 ```
 
 ```{r}
+# Unemployment over time per state
 mix %>%
   mutate(
     Value = as.numeric(Value),
@@ -152,7 +134,5 @@ mix %>%
   theme_minimal() +
   labs(title = "Unemployment Over Time by State",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics", y = "Unemployment", x = "Year")
-
-
 ```
 

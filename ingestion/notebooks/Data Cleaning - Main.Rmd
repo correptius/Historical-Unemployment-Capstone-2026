@@ -9,8 +9,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+library(janitor)
 library(tidyverse)
+```
 
+```{r}
 # Official state + DC FIPS table
 fips_states <- tibble(
   fips = c(
@@ -34,26 +37,30 @@ fips_states <- tibble(
 ```
 
 ```{r}
-df <- read_csv("main.csv", na = c("N/A", "-", ""))
+# Reading in data and cleaning
+df <- read_csv("main.csv", na = c("N/A", "-", "")) %>%
+  clean_names()   #  lowercase, underscores, cleaned symbols
 
 df_clean <- df %>%
+  clean_names() %>%
   mutate(
-    fips = substr(`Series ID`, 6, 7),
-    month = as.integer(substr(Period, 2, 3)),
-    Value = as.numeric(Value),
-    `1-Month Net Change` = as.numeric(`1-Month Net Change`),
-    `1-Month % Change` = as.numeric(`1-Month % Change`)
+    fips = substr(series_id, 6, 7),
+    month = as.integer(substr(period, 2, 3)),
+    value = as.numeric(value),
+    x1_month_net_change = as.numeric(x1_month_net_change),
+    x1_month_percent_change = as.numeric(x1_month_percent_change)
   ) %>%
-  left_join(fips_states, by = "fips") %>%
-  relocate(state, .before = Year)
+  left_join(fips_states, by = "fips") %>% # Joining state names with states
+  relocate(state, .before = year)
 
 head(df_clean)
 ```
 
 ```{r}
+# Creating state average percent change variable
 state_avg <- df_clean %>%
   group_by(state) %>%
-  summarize(avg_pct_change = mean(`1-Month % Change`, na.rm = TRUE))
+  summarize(avg_pct_change = mean(`x1_month_percent_change`, na.rm = TRUE))
 ```
 
 ```{r}
@@ -61,6 +68,7 @@ head(state_avg)
 ```
 
 ```{r}
+# Writing the data
 write.csv(df_clean, "clean.csv", row.names = FALSE)
 ```
 

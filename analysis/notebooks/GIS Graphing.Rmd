@@ -9,21 +9,28 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-clean <- read.csv("clean.csv")
+# Loading in libraries
+library(sf)
+library(USAboundaries)
+library(leaflet)
+library(scales)
+```
 
+```{r}
+# Loading in data
+clean <- read.csv("clean.csv")
 head(clean)
 ```
 
 ```{r}
-library(sf)
-library(USAboundaries)
-
+# Defining states
 states_sf <- USAboundaries::us_states() %>%
   filter(!state_name %in% c("Puerto Rico", "Guam", "American Samoa",
                             "U.S. Virgin Islands", "Northern Mariana Islands"))
 ```
 
 ```{r}
+# Defining states I am using
 states_to_map <- c(
   "Tennessee",
   "California",
@@ -35,21 +42,25 @@ states_to_map <- c(
 ```
 
 ```{r}
+# Getting the average percent change in states
 state_avg <- clean %>%
   group_by(state) %>%
-  summarize(avg_pct_change = mean(`X1.Month...Change`, na.rm = TRUE))
+  summarize(avg_pct_change = mean(`x1_month_percent_change`, na.rm = TRUE))
 ```
 
 ```{r}
+# Joining state names to state
 map_data <- states_sf %>%
   left_join(state_avg, by = c("state_name" = "state"))
 ```
 
 ```{r}
+# Finding the center
 centroids <- st_centroid(map_data)
 ```
 
 ```{r}
+# Keeping only data from my chosen states
 map_data_sub <- map_data %>%
   filter(state_name %in% states_to_map)
 
@@ -58,24 +69,7 @@ centroids_sub <- centroids %>%
 ```
 
 ```{r}
-library(ggplot2)
-
-ggplot() +
-  geom_sf(data = map_data, fill = "gray95", color = "white") +
-  geom_sf(data = centroids, aes(color = avg_pct_change, size = avg_pct_change)) +
-  scale_color_viridis_c(option = "plasma") +
-  labs(
-    title = "Average Monthly Percent Change in Unemployment by State",
-    color = "Avg % Change",
-    size = "Avg % Change"
-  ) +
-  theme_minimal()
-```
-
-```{r}
-library(leaflet)
-library(scales)
-
+# Interactive leaflet GIS map of average percent change in unemployment
 pal <- colorNumeric(
   palette = c("#2C7BB6", "#41B6C4", "#7FC97F", "#F46D43", "#A50026", "#4A001F"),
   domain = map_data_sub$avg_pct_change
@@ -111,5 +105,4 @@ leaflet() %>%
     opacity = 1,
     na.label = ""   # ensures no N/A box
   )
-
 ```

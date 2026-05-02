@@ -40,4 +40,6 @@ Project Structure:
   analysis/ - GIS modelling, statistical analysis, and results
   
   report/ - Deliverables, presentations, etc.
+
+  docs/ - References and sources
   

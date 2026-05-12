@@ -26,8 +26,8 @@ head(clean)
 ```{r}
 # Graphing unemployment rate over time
 ggplot(clean, aes(x = date, y = value)) +
-  geom_line(color = "#BCD2EE", linewidth = 1.2) +
-  geom_point(color = "#BCD2EE", size = 2) +
+  geom_line(color = "#BCD2EE", linewidth = 1) +
+  geom_point(color = "#BCD2EE", size = 1) +
   labs(
     title = "Unemployment Rate Over Time (Monthly)",
     x = "Date",

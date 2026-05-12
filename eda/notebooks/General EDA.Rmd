@@ -26,15 +26,15 @@ head(clean)
 ```{r}
 # Graphing unemployment rate over time
 ggplot(clean, aes(x = date, y = value)) +
-  geom_line(color = "darkred", linewidth = 1.2) +
-  geom_point(color = "darkred", size = 2) +
+  geom_line(color = "#BCD2EE", linewidth = 1.2) +
+  geom_point(color = "#BCD2EE", size = 2) +
   labs(
     title = "Unemployment Rate Over Time (Monthly)",
     x = "Date",
     y = "Unemployment %",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics"
   ) +
-  theme_minimal(base_size = 14)
+  theme_dark(base_size = 14)
 
 ```
 
@@ -47,40 +47,26 @@ clean %>%
     date = as.Date(paste(year, month, "01", sep = "-"))
   ) %>%
   ggplot(aes(date, change)) +
-  geom_col(fill = "darkred") +
+  geom_col(fill = "#BCD2EE") +
   labs(title = "Unemployment Month-to-Month Net Change", x = "Date", y = "% Change",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
-  theme_minimal()
+  theme_dark()
 ```
 
-```{r}
-# Graph of seasonal changes in unemployment
-clean %>%
-  mutate(
-    value = as.numeric(value),
-    month = as.integer(str_remove(period, "M"))
-  ) %>%
-  ggplot(aes(x = month, y = value, group = year, color = factor(year))) +
-  geom_line(alpha = 0.6) +
-  labs(title = "Seasonal Patterns in Unemployment Across Years", x = "Month", y = "Rate",
-    subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
-  theme_minimal()
-
-```
 
 ```{r}
 # Density of unemployment percentages
 clean %>%
   mutate(value = as.numeric(value)) %>%
   ggplot(aes(value)) +
-  geom_density(fill = "darkred", alpha = 0.4) +
+  geom_density(fill = "#BCD2EE", alpha = 0.7) +
     labs(
     x = "Unemployment %",
     y = "Density",
     title = "Density of Unemployment %",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics"
   )+
-  theme_minimal()
+  theme_dark()
 ```
 
 ```{r}
@@ -88,14 +74,14 @@ clean %>%
 
 mix %>%
   mutate(
-    Value = as.numeric(Value),
-    Month = as.integer(str_remove(Period, "M")),
-    Date = as.Date(paste(Year, Month, "01", sep = "-"))
+    value = as.numeric(value),
+    month = as.integer(str_remove(period, "M")),
+    date = as.Date(paste(year, month, "01", sep = "-"))
   ) %>%
-  ggplot(aes(Date, Value)) +
-  geom_line() +
+  ggplot(aes(date, value)) +
+  geom_line(color = '#BCD2EE', linewidth = 0.8) +
   facet_wrap(~ state, scales = "free_y") +
-  theme_minimal() +
+  theme_dark() +
   labs(title = "Unemployment Over Time by State",
     subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics", y = "Unemployment", x = "Year")
 ```

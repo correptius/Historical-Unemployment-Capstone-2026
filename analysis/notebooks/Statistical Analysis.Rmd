@@ -77,14 +77,30 @@ final <- pop %>%
 ```
 
 ```{r}
-# Distribution of population density 
+# Population density distribution
 hist(final$pop_density,
      main = "Population Density Distribution (2020–2025)",
      xlab = "Population Density (people per sq. mile)",
      ylab = "Frequency",
-     col = "lightblue",
+     col = "#BCD2EE",
      border = "white")
+
+# Darken only the plot region
+usr <- par("usr")  # get plot boundaries
+rect(usr[1], usr[3], usr[2], usr[4], col = "gray45", border = NA)
+
+# Redraw histogram on top
+hist(final$pop_density,
+     add = TRUE,
+     col = "#BCD2EE",
+     border = "white")
+
+# Add subtitle
+mtext("U.S. Census Bureau Population Estimates", side = 3, line = 0.5, cex = 0.8)
+
+# Right-skewed (Log transformation)
 ```
+
 
 ```{r}
 # Pearson correlation test
@@ -104,21 +120,128 @@ final %>%
 ```
 
 ```{r}
-# Scatterplot of results, with linear and loess plotted to compare the potential relationships
-ggplot(final, aes(x = pop_density, y = value)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  geom_smooth(method = "loess", se = FALSE, color = "red") +
-  labs(title = "Population Density vs Unemployment",
-       x = "Population Density",
-       y = "Unemployment Rate")
-```
-
-```{r}
 # Logarithmic transformation of the Pearson test
 final$log_density <- log(final$pop_density)
 
 cor.test(final$log_density, final$value)
   # Better
+```
+
+```{r}
+# Graphing transformed points, produced better output
+final$log_density <- log(final$pop_density)
+final$log_value   <- log(final$value)
+
+# Scatterplot of results, with linear plotted to compare the potential relationships
+ggplot(final, aes(x = log_density, y = log_value)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "#BCD2EE", linewidth = 1.5) +
+  labs(title = "Log Population Density vs Log Unemployment (My States)",
+       x = "Population Density",
+       y = "Unemployment Rate",
+       subtitle = "U.S. Bureau of Labor Statistics Local Area Unemployment Statistics") +
+  theme_dark()
+```
+
+```{r}
+# Reading in all states data
+allstates <- read.csv("allstates.csv")
+pop      <- read.csv("pop.csv")
+
+str(allstates)
+str(pop)
+```
+
+```{r}
+# Checking and setting up for data merge
+annual_unemp <- allstates %>%
+  group_by(state, year) %>%
+  summarise(
+    allunemp = sum(value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+str(annual_unemp)
+head(annual_unemp)
+
+```
+
+```{r}
+# Join data
+afinal <- annual_unemp %>%
+  inner_join(pop, by = c("state", "year"))
+
+str(afinal)
+head(afinal)
+
+```
+
+```{r}
+# Ensuring the data size and type is correct
+str(afinal$allunemp)
+str(afinal$pop_density)
+
+length(afinal$allunemp)
+length(afinal$pop_density)
+
+afinal$pop_density <- as.numeric(afinal$pop_density)
+
+```
+```{r}
+# Pearson's correlation testing with all states and population density
+cor.test(afinal$allunemp, afinal$pop_density, method = "pearson")
+```
+
+```{r}
+# Checking population density distribution of all states
+hist(afinal$pop_density,
+     main = "Population Density Distribution (2020–2025)",
+     xlab = "Population Density (people per sq. mile)",
+     ylab = "Frequency",
+     col = "#BCD2EE",
+     border = "white")
+usr <- par("usr")  # get plot boundaries
+rect(usr[1], usr[3], usr[2], usr[4], col = "gray45", border = NA)
+
+# Redraw histogram on top
+hist(afinal$pop_density,
+     add = TRUE,
+     col = "#BCD2EE",
+     border = "white")
+
+# Add subtitle
+mtext("U.S. Census Bureau Population Estimates", side = 3, line = 0.5, cex = 0.8)
+
+# Yet again right skewed, log transformation incoming
+```
+
+```{r}
+# Logarithmic transformation
+afinal$log_unemp <- log(afinal$allunemp)
+afinal$log_density <- log(afinal$pop_density)
+```
+
+```{r}
+# Retesting
+cor.test(afinal$log_unemp, afinal$log_density, method = "pearson")
+
+# Better p
+# Better correlation
+```
+```{r}
+# Graph log-transformed data to visualize correlation
+afinal$log_density <- log(afinal$pop_density)
+afinal$log_unemp   <- log(afinal$allunemp)
+
+ggplot(afinal, aes(x = log_density, y = log_unemp)) +
+  geom_point(alpha = 0.8, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, color = "#BCD2EE", linewidth = 1.5) +
+  labs(
+    title = "Log Population Density vs Log Unemployment (All States)",
+    x = "Log Population Density",
+    y = "Log Unemployment",
+    subtitle = "U.S. Bureau of Labor Statistics & U.S. Census Bureau"
+  ) +
+  theme_dark()
 ```
 

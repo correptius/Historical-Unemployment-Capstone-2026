@@ -113,13 +113,5 @@ usmap <- leaflet() %>%
 print(usmap)
 ```
 
-```{r}
-library(htmlwidgets)
 
-saveWidget(
-  widget = usmap,
-  file = "usmap.html",
-  selfcontained = TRUE
-)
-```
 

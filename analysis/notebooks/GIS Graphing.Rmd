@@ -14,6 +14,8 @@ library(sf)
 library(USAboundaries)
 library(leaflet)
 library(scales)
+library(dplyr)
+library(tidyverse)
 ```
 
 ```{r}
@@ -25,8 +27,10 @@ head(clean)
 ```{r}
 # Defining states
 states_sf <- USAboundaries::us_states() %>%
-  filter(!state_name %in% c("Puerto Rico", "Guam", "American Samoa",
-                            "U.S. Virgin Islands", "Northern Mariana Islands"))
+  dplyr::filter(!name %in% c(
+    "Puerto Rico", "Guam", "American Samoa",
+    "U.S. Virgin Islands", "Northern Mariana Islands"
+  ))
 ```
 
 ```{r}
@@ -71,18 +75,18 @@ centroids_sub <- centroids %>%
 ```{r}
 # Interactive leaflet GIS map of average percent change in unemployment
 pal <- colorNumeric(
-  palette = c("#2C7BB6", "#41B6C4", "#7FC97F", "#F46D43", "#A50026", "#4A001F"),
+  palette = c("#FF9ACD", "#FF4F8B", "#B3003C", "#4A001F"),
   domain = map_data_sub$avg_pct_change
 )
 
-leaflet() %>%
-  addProviderTiles("CartoDB.Voyager") %>%
+usmap <- leaflet() %>%
+  addProviderTiles("OpenStreetMap.HOT") %>%
   addPolygons(
     data = map_data_sub,
     fillColor = "white",
     fillOpacity = 0.2,
     color = "gray40",
-    weight = 1
+    weight = 4
   ) %>%
   addCircleMarkers(
     data = centroids_sub,
@@ -105,4 +109,17 @@ leaflet() %>%
     opacity = 1,
     na.label = ""   # ensures no N/A box
   )
+
+print(usmap)
 ```
+
+```{r}
+library(htmlwidgets)
+
+saveWidget(
+  widget = usmap,
+  file = "usmap.html",
+  selfcontained = TRUE
+)
+```
+
